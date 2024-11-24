@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /work
 
-COPY ./requirements.txt /work
+COPY . /work
 RUN apt-get clean && apt-get update
 RUN apt-get upgrade -y --fix-missing
 
@@ -11,3 +11,5 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN pip3 install --upgrade pip setuptools
 RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["python3", "server.py"]

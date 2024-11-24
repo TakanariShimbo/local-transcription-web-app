@@ -18,23 +18,28 @@ services:
 
   api-server-service:
     container_name: api-server-container
-    image: takanarishimbo/local-transcription-web-app-api-server
+    image: local-transcription-web-app-api-server
     ports:
       - "${API_SERVER_PORT}:8000"
+    volumes:
+      - ./api_server:/work
     environment:
       - CACHE_SERVER_ADDRESS=cache-server-container
       - CACHE_SERVER_PORT=6379
       - CACHE_SERVER_PASSWORD=${CACHE_SERVER_PASSWORD}
     depends_on:
       - cache-server-service
+    command: ["python3", "server.py"]
     restart: always
 
   ui-server-service:
-    image: takanarishimbo/local-transcription-web-app-ui-server
+    image: node:18.20.3
     container_name: ui-server-container
     ports:
       - 5173:5173
     working_dir: /work
+    volumes:
+      - ./ui_server:/work
     environment:
       - VITE_API_SERVER_ADDRESS=${API_SERVER_ADDRESS}
       - VITE_API_SERVER_PORT=${API_SERVER_PORT}
@@ -45,12 +50,15 @@ services:
 
   worker-service:
     container_name: worker-container
-    image: takanarishimbo/local-transcription-web-app-worker
+    image: local-transcription-web-app-worker
     runtime: nvidia
+    volumes:
+      - ./worker:/work
     environment:
       - CACHE_SERVER_ADDRESS=cache-server-container
       - CACHE_SERVER_PORT=6379
       - CACHE_SERVER_PASSWORD=${CACHE_SERVER_PASSWORD}
     depends_on:
       - cache-server-service
+    command: ["python3", "worker.py"]
     restart: always

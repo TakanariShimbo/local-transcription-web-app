@@ -2,34 +2,30 @@
 
 Sample Local Transcription Web App
 
+## Required
+
+- docker
+- nvidia-driver
+- nvidia-container-toolkit
+
+## How to use
+
 1. Create .env file
 
-2. Build docker image
-
-```bash
-# build api server
-cd ./api_server
-docker build -t local-transcription-web-app-api-server .
-
-# build worker
-cd ./worker
-docker build -t local-transcription-web-app-worker .
-```
-
-3. Start container
+2. Start container
 
 ```bash
 docker compose up -d
 ```
 
-4. Open UI
+3. Open UI
 
 ```bash
 # UI-SERVER-PORT: set at .env
 http://localhost:UI-SERVER-PORT/
 ```
 
-5. Check monitor of cache server
+4. Check monitor of cache server
 
 - Access the following url
 

@@ -28,29 +28,34 @@ export const checkTranscriptionResultDummy = async ({ uuid }: { uuid: string }):
 };
 
 export const checkTranscriptionResult = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
-  const response = await axios.get(`${API_SERVER_ENDPOINT}/get-result/${uuid}`);
+  try {
+    const response = await axios.get(`${API_SERVER_ENDPOINT}/get-result/${uuid}`);
 
-  if (response.status === 200) {
-    return {
-      status: "completed",
-      data: {
-        text: response.data.data.transcription,
-      },
-    };
-  } else if (response.status === 202) {
-    const position = response.data.data.n_wait;
-    return {
-      status: "queued",
-      data: {
-        position,
-      },
-    };
-  } else if (response.status === 404) {
-    return {
-      status: "not_found",
-    };
-  } else {
-    throw new Error(`Failed to get job result: ${response.statusText}`);
+    if (response.status === 200) {
+      return {
+        status: "completed",
+        data: {
+          text: response.data.data.transcription,
+        },
+      };
+    } else if (response.status === 202) {
+      const position = response.data.data.n_wait;
+      return {
+        status: "queued",
+        data: {
+          position,
+        },
+      };
+    } else {
+      throw new Error(`Failed to get job result: ${response.statusText}`);
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return {
+        status: "not_found",
+      };
+    }
+    throw error;
   }
 };
 

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { type SubmitFormValues, submitFormSchema } from "@/lib/schemas";
-import { addTranscriptionJobDummy as addTranscriptionJob } from "@/lib/api";
+import { addTranscriptionJob } from "@/lib/api";
 
 const AudioFileField = ({ control }: { control: Control<SubmitFormValues> }): JSX.Element => (
   <FormField

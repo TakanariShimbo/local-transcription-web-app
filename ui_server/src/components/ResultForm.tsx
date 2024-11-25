@@ -170,7 +170,7 @@ const ResultDisplay = ({
 
 export const ResultForm = (): JSX.Element => {
   const [result, setResult] = useState<TranscriptionResult | null>(null);
-  const [submittedUuid, setSubmittedUuid] = useState<string | null>(null);
+  const [submittedValues, setSubmittedValues] = useState<ResultFormValues | null>(null);
   const { toast } = useToast();
 
   const form = useForm<ResultFormValues>({
@@ -193,7 +193,7 @@ export const ResultForm = (): JSX.Element => {
   const onSubmit = async (values: ResultFormValues) => {
     try {
       const response = await checkTranscriptionResult({ uuid: values.uuid });
-      setSubmittedUuid(values.uuid);
+      setSubmittedValues(values);
       setResult(response);
     } catch (error) {
       showToast({ variant: "error", title: "エラー", description: "ステータス確認中にエラーが発生しました。" });
@@ -205,18 +205,20 @@ export const ResultForm = (): JSX.Element => {
     showToast({ variant: "success", title: "コピー完了", description: "文字起こし結果をクリップボードにコピーしました。" });
   };
 
-  const handleRemoveResult = async (uuid: string) => {
+  const handleRemoveResult = async () => {
+    if (!submittedValues) return;
     try {
-      await removeTranscriptionResult({ uuid });
+      await removeTranscriptionResult({ uuid: submittedValues.uuid });
       showToast({ variant: "success", title: "削除完了", description: "文字起こし結果を削除しました。" });
     } catch (error) {
       showToast({ variant: "error", title: "エラー", description: "結果の削除中にエラーが発生しました。" });
     }
   };
 
-  const handleCancelJob = async (uuid: string) => {
+  const handleCancelJob = async () => {
+    if (!submittedValues) return;
     try {
-      await cancelTranscriptionJob({ uuid });
+      await cancelTranscriptionJob({ uuid: submittedValues.uuid });
       showToast({ variant: "success", title: "キャンセル完了", description: "文字起こし予約をキャンセルしました。" });
     } catch (error) {
       showToast({ variant: "error", title: "エラー", description: "予約のキャンセル中にエラーが発生しました。" });
@@ -227,12 +229,7 @@ export const ResultForm = (): JSX.Element => {
     <Card>
       <CardContent className="pt-6">
         <FormComponent form={form} onSubmit={onSubmit} />
-        <ResultDisplay
-          result={result}
-          handleCopyText={handleCopyText}
-          handleRemoveResult={() => handleRemoveResult(submittedUuid)}
-          handleCancelJob={() => handleCancelJob(submittedUuid)}
-        />
+        <ResultDisplay result={result} handleCopyText={handleCopyText} handleRemoveResult={handleRemoveResult} handleCancelJob={handleCancelJob} />
       </CardContent>
     </Card>
   );

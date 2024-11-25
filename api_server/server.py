@@ -64,10 +64,28 @@ def get_result_process(job_id: str) -> JSONResponse | dict[str, Any]:
     raise HTTPException(status_code=404, detail="Job not found")
 
 
+def remove_result_process(job_id: str) -> None:
+    if not cache_client.remove_result_data(job_id=job_id):
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return
+
+
+def cancel_job_process(job_id: str) -> None:
+    is_success, message = cache_client.cancel_job(job_id=job_id)
+
+    if message == "processing":
+        raise HTTPException(status_code=400, detail="Job is processing")
+    elif message == "not found":
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return
+
+
 @app.post(path="/add-job/high-priority", response_model=AddJobResponse)
 def add_job_as_high_priority(
     language: str = Form(...),
-    expiration_sec: int = Form(60 * 60 * 24),
+    expiration_sec: int = Form(60 * 60 * 24 * 7),
     audio_files: list[UploadFile] = File(...),
 ):
     return add_job_process(priority="high", language=language, expiration_sec=expiration_sec, audio_files=audio_files)
@@ -76,7 +94,7 @@ def add_job_as_high_priority(
 @app.post(path="/add-job/low-priority", response_model=AddJobResponse)
 def add_job_as_low_priority(
     language: str = Form(...),
-    expiration_sec: int = Form(60 * 60 * 24),
+    expiration_sec: int = Form(60 * 60 * 24 * 7),
     audio_files: list[UploadFile] = File(...),
 ):
     return add_job_process(priority="low", language=language, expiration_sec=expiration_sec, audio_files=audio_files)
@@ -85,6 +103,16 @@ def add_job_as_low_priority(
 @app.get(path="/get-result/{job_id}", response_model=GetResultResponse)
 def get_result(job_id: str):
     return get_result_process(job_id=job_id)
+
+
+@app.delete(path="/remove-result/{job_id}")
+def remove_result(job_id: str):
+    remove_result_process(job_id=job_id)
+
+
+@app.delete(path="/cancel-job/{job_id}")
+def cancel_job(job_id: str):
+    cancel_job_process(job_id=job_id)
 
 
 if __name__ == "__main__":

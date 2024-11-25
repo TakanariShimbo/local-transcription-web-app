@@ -35,7 +35,9 @@ const CompletedResult = ({ text, onCopy }: { text: string; onCopy: (text: string
 const QueuedResult = ({ position }: { position: number }): JSX.Element => {
   return (
     <Alert className="bg-yellow-100 text-foreground">
-      <AlertDescription>現在順番待ちです。あなたの順番は {position} 番目です。</AlertDescription>
+      <AlertDescription>
+        {position === 0 ? "現在文字お越し中です。もう少しで完了します。" : `現在順番待ちです。あなたの順番は ${position} 番目です。`}
+      </AlertDescription>
     </Alert>
   );
 };

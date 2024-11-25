@@ -34,13 +34,11 @@ services:
     container_name: ui-server-container
     ports:
       - 5173:5173
-    working_dir: /work
     environment:
       - VITE_API_SERVER_ADDRESS=${API_SERVER_ADDRESS}
       - VITE_API_SERVER_PORT=${API_SERVER_PORT}
     depends_on:
       - api-server-service
-    command: sh -c "npm install -g npm@10.2.3 && npm ci && npm run dev"
     restart: always
 
   worker-service:

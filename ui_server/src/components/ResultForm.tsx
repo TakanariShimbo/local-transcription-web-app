@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Loader, Copy, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader, Copy, AlertCircle, CheckCircle, Trash } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -10,13 +10,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { type ResultFormValues, resultFormSchema } from "@/lib/schemas";
-import { type TranscriptionResult, checkTranscriptionStatus } from "@/lib/api";
+import { type TranscriptionResult, checkTranscriptionResultDummy as checkTranscriptionResult } from "@/lib/api";
 
 const CompletedResult = ({ text, onCopy }: { text: string; onCopy: (text: string) => void }): JSX.Element => {
   return (
     <div className="space-y-4">
-      <Alert variant="default" className="bg-green-100 text-foreground">
-        <AlertDescription>文字起こしが完了しました。</AlertDescription>
+      <Alert variant="default" className="bg-green-100 text-foreground p-6">
+        <div className="flex justify-between items-center gap-4">
+          <AlertDescription>文字起こしが完了しました。</AlertDescription>
+          <Button type="button" variant="destructive" className="flex-shrink-0 text-background">
+            <Trash className="h-5 w-5" />
+          </Button>
+        </div>
       </Alert>
       <Card className="bg-muted">
         <CardContent className="pt-6">
@@ -35,9 +40,16 @@ const CompletedResult = ({ text, onCopy }: { text: string; onCopy: (text: string
 const QueuedResult = ({ position }: { position: number }): JSX.Element => {
   return (
     <Alert className="bg-yellow-100 text-foreground">
-      <AlertDescription>
-        {position === 0 ? "現在文字お越し中です。もう少しで完了します。" : `現在順番待ちです。あなたの順番は ${position} 番目です。`}
-      </AlertDescription>
+      {position === 0 ? (
+        <AlertDescription>現在文字お越し中です。もう少しで完了します。</AlertDescription>
+      ) : (
+        <div className="flex justify-between items-center gap-4">
+          <AlertDescription>現在順番待ちです。あなたの順番は {position} 番目です。</AlertDescription>
+          <Button type="button" variant="destructive" className="flex-shrink-0 text-background">
+            <Trash className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
     </Alert>
   );
 };
@@ -115,7 +127,7 @@ export const ResultForm = (): JSX.Element => {
 
   const onSubmit = async (values: ResultFormValues) => {
     try {
-      const response = await checkTranscriptionStatus({ uuid: values.uuid });
+      const response = await checkTranscriptionResult({ uuid: values.uuid });
       setResult(response);
     } catch (error) {
       showToast({ variant: "error", title: "エラー", description: "ステータス確認中にエラーが発生しました。" });

@@ -9,12 +9,12 @@ export type TranscriptionResult = {
   data?: { position?: number; text?: string };
 };
 
-export const checkTranscriptionStatusDummy = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
+export const checkTranscriptionResultDummy = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const random = Math.random();
   if (random < 0.3) {
-    return { status: "queued", data: { position: Math.floor(Math.random() * 10) + 1 } };
+    return { status: "queued", data: { position: Math.floor(Math.random() * 2) } };
   } else if (random < 0.6) {
     return {
       status: "completed",
@@ -27,7 +27,7 @@ export const checkTranscriptionStatusDummy = async ({ uuid }: { uuid: string }):
   }
 };
 
-export const checkTranscriptionStatus = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
+export const checkTranscriptionResult = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
   const response = await axios.get(`${API_SERVER_ENDPOINT}/get-result/${uuid}`);
 
   if (response.status === 200) {
@@ -54,12 +54,12 @@ export const checkTranscriptionStatus = async ({ uuid }: { uuid: string }): Prom
   }
 };
 
-export const submitTranscriptionRequestDummy = async ({ audio_file, language }: { audio_file: File; language: string }): Promise<string> => {
+export const addTranscriptionJobDummy = async ({ audio_file, language }: { audio_file: File; language: string }): Promise<string> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return crypto.randomUUID();
 };
 
-export const submitTranscriptionRequest = async ({ audio_file, language }: { audio_file: File; language: string }): Promise<string> => {
+export const addTranscriptionJob = async ({ audio_file, language }: { audio_file: File; language: string }): Promise<string> => {
   const formData = new FormData();
   formData.append("language", language);
   formData.append("audio_files", audio_file);
@@ -75,4 +75,40 @@ export const submitTranscriptionRequest = async ({ audio_file, language }: { aud
   }
 
   return response.data.data[0].job_id;
+};
+
+export const removeTranscriptionResultDummy = async ({ uuid }: { uuid: string }): Promise<void> => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  console.log(`Dummy: Removed transcription result for UUID: ${uuid}`);
+};
+
+export const removeTranscriptionResult = async ({ uuid }: { uuid: string }): Promise<void> => {
+  try {
+    const response = await axios.delete(`${API_SERVER_ENDPOINT}/remove-result/${uuid}`);
+
+    if (response.status !== 200) {
+      throw new Error(`Failed to remove job result: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error(`Error removing transcription result: ${error}`);
+    throw error;
+  }
+};
+
+export const cancelTranscriptionJobDummy = async ({ uuid }: { uuid: string }): Promise<void> => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  console.log(`Dummy: Cancelled transcription job for UUID: ${uuid}`);
+};
+
+export const cancelTranscriptionJob = async ({ uuid }: { uuid: string }): Promise<void> => {
+  try {
+    const response = await axios.delete(`${API_SERVER_ENDPOINT}/cancel-job/${uuid}`);
+
+    if (response.status !== 200) {
+      throw new Error(`Failed to cancel job: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error(`Error cancelling transcription job: ${error}`);
+    throw error;
+  }
 };

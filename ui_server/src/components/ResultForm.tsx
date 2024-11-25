@@ -8,19 +8,66 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { type ResultFormValues, resultFormSchema } from "@/lib/schemas";
-import { type TranscriptionResult, checkTranscriptionResultDummy as checkTranscriptionResult } from "@/lib/api";
+import { type TranscriptionResult, checkTranscriptionResult, removeTranscriptionResult, cancelTranscriptionJob } from "@/lib/api";
 
-const CompletedResult = ({ text, onCopy }: { text: string; onCopy: (text: string) => void }): JSX.Element => {
+const DialogTrashButton = ({
+  title,
+  description,
+  buttonText,
+  onConfirm,
+}: {
+  title: string;
+  description: string;
+  buttonText: string;
+  onConfirm: () => Promise<void>;
+}) => {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" variant="destructive" className="flex-shrink-0 text-background">
+          <Trash className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center space-x-4">
+          <DialogClose asChild>
+            <Button type="button" variant="destructive" onClick={onConfirm}>
+              {buttonText}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              閉じる
+            </Button>
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const CompletedResult = ({
+  text,
+  onCopy,
+  onRemove,
+}: {
+  text: string;
+  onCopy: (text: string) => void;
+  onRemove: () => Promise<void>;
+}): JSX.Element => {
   return (
     <div className="space-y-4">
       <Alert variant="default" className="bg-green-100 text-foreground p-6">
         <div className="flex justify-between items-center gap-4">
           <AlertDescription>文字起こしが完了しました。</AlertDescription>
-          <Button type="button" variant="destructive" className="flex-shrink-0 text-background">
-            <Trash className="h-5 w-5" />
-          </Button>
+          <DialogTrashButton title="結果の削除" description="本当に文字お越し結果を履歴から削除しますか？" buttonText="削除" onConfirm={onRemove} />
         </div>
       </Alert>
       <Card className="bg-muted">
@@ -37,7 +84,7 @@ const CompletedResult = ({ text, onCopy }: { text: string; onCopy: (text: string
   );
 };
 
-const QueuedResult = ({ position }: { position: number }): JSX.Element => {
+const QueuedResult = ({ position, onCancel }: { position: number; onCancel: () => Promise<void> }): JSX.Element => {
   return (
     <Alert className="bg-yellow-100 text-foreground">
       {position === 0 ? (
@@ -45,9 +92,12 @@ const QueuedResult = ({ position }: { position: number }): JSX.Element => {
       ) : (
         <div className="flex justify-between items-center gap-4">
           <AlertDescription>現在順番待ちです。あなたの順番は {position} 番目です。</AlertDescription>
-          <Button type="button" variant="destructive" className="flex-shrink-0 text-background">
-            <Trash className="h-5 w-5" />
-          </Button>
+          <DialogTrashButton
+            title="予約のキャンセル"
+            description="本当に文字お越し予約をキャンセルしますか？"
+            buttonText="キャンセル"
+            onConfirm={onCancel}
+          />
         </div>
       )}
     </Alert>
@@ -96,16 +146,31 @@ const FormComponent = ({ form, onSubmit }: { form: any; onSubmit: (values: Resul
   </Form>
 );
 
-const ResultDisplay = ({ result, handleCopyText }: { result: TranscriptionResult | null; handleCopyText: (text: string) => Promise<void> }) => (
+const ResultDisplay = ({
+  result,
+  handleCopyText,
+  handleRemoveResult,
+  handleCancelJob,
+}: {
+  result: TranscriptionResult | null;
+  handleCopyText: (text: string) => Promise<void>;
+  handleRemoveResult: () => Promise<void>;
+  handleCancelJob: () => Promise<void>;
+}) => (
   <div className="mt-6 space-y-4">
-    {result?.status === "queued" && result.data?.position !== undefined && <QueuedResult position={result.data.position} />}
-    {result?.status === "completed" && result.data?.text && <CompletedResult text={result.data.text} onCopy={handleCopyText} />}
+    {result?.status === "queued" && result.data?.position !== undefined && (
+      <QueuedResult position={result.data.position} onCancel={handleCancelJob} />
+    )}
+    {result?.status === "completed" && result.data?.text && (
+      <CompletedResult text={result.data.text} onCopy={handleCopyText} onRemove={handleRemoveResult} />
+    )}
     {result?.status === "not_found" && <NotFoundResult />}
   </div>
 );
 
 export const ResultForm = (): JSX.Element => {
   const [result, setResult] = useState<TranscriptionResult | null>(null);
+  const [submittedUuid, setSubmittedUuid] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<ResultFormValues>({
@@ -128,6 +193,7 @@ export const ResultForm = (): JSX.Element => {
   const onSubmit = async (values: ResultFormValues) => {
     try {
       const response = await checkTranscriptionResult({ uuid: values.uuid });
+      setSubmittedUuid(values.uuid);
       setResult(response);
     } catch (error) {
       showToast({ variant: "error", title: "エラー", description: "ステータス確認中にエラーが発生しました。" });
@@ -139,11 +205,34 @@ export const ResultForm = (): JSX.Element => {
     showToast({ variant: "success", title: "コピー完了", description: "文字起こし結果をクリップボードにコピーしました。" });
   };
 
+  const handleRemoveResult = async (uuid: string) => {
+    try {
+      await removeTranscriptionResult({ uuid });
+      showToast({ variant: "success", title: "削除完了", description: "文字起こし結果を削除しました。" });
+    } catch (error) {
+      showToast({ variant: "error", title: "エラー", description: "結果の削除中にエラーが発生しました。" });
+    }
+  };
+
+  const handleCancelJob = async (uuid: string) => {
+    try {
+      await cancelTranscriptionJob({ uuid });
+      showToast({ variant: "success", title: "キャンセル完了", description: "文字起こし予約をキャンセルしました。" });
+    } catch (error) {
+      showToast({ variant: "error", title: "エラー", description: "予約のキャンセル中にエラーが発生しました。" });
+    }
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
         <FormComponent form={form} onSubmit={onSubmit} />
-        <ResultDisplay result={result} handleCopyText={handleCopyText} />
+        <ResultDisplay
+          result={result}
+          handleCopyText={handleCopyText}
+          handleRemoveResult={() => handleRemoveResult(submittedUuid)}
+          handleCancelJob={() => handleCancelJob(submittedUuid)}
+        />
       </CardContent>
     </Card>
   );

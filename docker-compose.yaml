@@ -44,7 +44,13 @@ services:
   worker-service:
     container_name: worker-container
     image: takanarishimbo/local-transcription-web-app-worker
-    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     environment:
       - CACHE_SERVER_ADDRESS=cache-server-container
       - CACHE_SERVER_PORT=6379

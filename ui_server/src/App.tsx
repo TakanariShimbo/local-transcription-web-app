@@ -7,7 +7,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="container mx-auto max-w-2xl">
-        <h1 className="text-4xl font-bold text-center mb-8">文字お越しアプリ</h1>
+        <h1 className="text-4xl font-bold text-center mb-8">文字起こしアプリ</h1>
 
         <Tabs defaultValue="submit" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">

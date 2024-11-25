@@ -67,7 +67,7 @@ const CompletedResult = ({
       <Alert variant="default" className="bg-green-100 text-foreground p-6">
         <div className="flex justify-between items-center gap-4">
           <AlertDescription>文字起こしが完了しました。</AlertDescription>
-          <DialogTrashButton title="結果の削除" description="本当に文字お越し結果を履歴から削除しますか？" buttonText="削除" onConfirm={onRemove} />
+          <DialogTrashButton title="結果の削除" description="本当に文字起こし結果を履歴から削除しますか？" buttonText="削除" onConfirm={onRemove} />
         </div>
       </Alert>
       <Card className="bg-muted">
@@ -88,13 +88,13 @@ const QueuedResult = ({ position, onCancel }: { position: number; onCancel: () =
   return (
     <Alert className="bg-yellow-100 text-foreground">
       {position === 0 ? (
-        <AlertDescription>現在文字お越し中です。もう少しで完了します。</AlertDescription>
+        <AlertDescription>現在文字起こし中です。もう少しで完了します。</AlertDescription>
       ) : (
         <div className="flex justify-between items-center gap-4">
           <AlertDescription>現在順番待ちです。あなたの順番は {position} 番目です。</AlertDescription>
           <DialogTrashButton
             title="予約のキャンセル"
-            description="本当に文字お越し予約をキャンセルしますか？"
+            description="本当に文字起こし予約をキャンセルしますか？"
             buttonText="キャンセル"
             onConfirm={onCancel}
           />

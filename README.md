@@ -2,6 +2,8 @@
 
 Sample Local Transcription Web App
 
+![sample](./README/sample.gif)
+
 ## Required
 
 - docker

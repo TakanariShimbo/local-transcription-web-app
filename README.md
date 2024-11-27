@@ -1,6 +1,6 @@
 ## About
 
-Sample Local Transcription Web App
+Local Transcription Web App
 
 ![sample](./README/sample.gif)
 

@@ -1,0 +1,11 @@
+---
+config:
+  layout: fixed
+  look: classic
+---
+flowchart TD
+    client("Client<br>(Browser)") --> ui_server_service("UI Server<br>(Vite+React+Shadcn)")
+    cache_monitor_service("Cache Monitor Server<br>(Redis Insight)") --> cache_server_service("Cache Server<br>(Redis)")
+    api_server_service("API Server<br>(FastAPI)") --> cache_server_service
+    ui_server_service --> api_server_service
+    worker_service("Worker<br>(Whisper)") --> cache_server_service

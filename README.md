@@ -12,36 +12,41 @@ Local Transcription Web App
 
 ## How to use
 
+### Start services
+
 1. Create .env file
 
-2. Start container
+2. Start services
 
 ```bash
 docker compose up -d
 ```
 
-3. Open UI
+### Access UI server
 
 ```bash
-# UI-SERVER-PORT: set at .env
+# UI-SERVER-PORT: you can set at .env
 http://localhost:UI-SERVER-PORT/
 ```
 
-4. Check monitor of cache server
+### Access cache monitor server
 
-- Access the following url
+1. Access the following url
 
 ```url
-# CACHE-SERVER-MONITOR-PORT: set at .env
+# CACHE-SERVER-MONITOR-PORT: you can set at .env
 http://localhost:CACHE-SERVER-MONITOR-PORT/
 ```
 
-- Click [Add Redis database]
-- Enter the following items
+2. Click "Add database"
+3. Enter the following items
 
 ```
 Host: cache-server-container
-Database Alias: Your optional name
 Username: default
-Password: CACHE_SERVER_PASSWORD set at .env
+Password: CACHE_SERVER_PASSWORD (you can set at .env)
 ```
+
+## System Diagram
+
+![system-diagram](./README/system-diagram.png)

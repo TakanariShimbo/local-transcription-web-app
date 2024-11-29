@@ -4,13 +4,13 @@ Local Transcription Web App
 
 ![sample](./README/sample.gif)
 
-## Required
+## How to use
+
+### Required
 
 - docker
 - nvidia-driver
 - nvidia-container-toolkit
-
-## How to use
 
 ### Start services
 

@@ -49,4 +49,4 @@ Password: CACHE_SERVER_PASSWORD (you can set at .env)
 
 ## System Diagram
 
-![system-diagram](./README/system-diagram.png)
+<img src="./README/system-diagram.png" alt="system-diagram" width="600">

@@ -33,7 +33,7 @@ services:
     image: takanarishimbo/local-transcription-web-app-ui-server
     container_name: ui-server-container
     ports:
-      - ${UI_SERVER_PORT}:4173
+      - ${UI_SERVER_PORT}:5173
     environment:
       - VITE_API_SERVER_ADDRESS=${API_SERVER_ADDRESS}
       - VITE_API_SERVER_PORT=${API_SERVER_PORT}

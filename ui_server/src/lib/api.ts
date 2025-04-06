@@ -9,7 +9,7 @@ export type TranscriptionResult = {
   data?: { position?: number; text?: string };
 };
 
-export const checkTranscriptionResultDummy = async ({ uuid }: { uuid: string }): Promise<TranscriptionResult> => {
+export const checkTranscriptionResultDummy = async (): Promise<TranscriptionResult> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const random = Math.random();
@@ -59,7 +59,7 @@ export const checkTranscriptionResult = async ({ uuid }: { uuid: string }): Prom
   }
 };
 
-export const addTranscriptionJobDummy = async ({ audio_file, language }: { audio_file: File; language: string }): Promise<string> => {
+export const addTranscriptionJobDummy = async (): Promise<string> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return crypto.randomUUID();
 };

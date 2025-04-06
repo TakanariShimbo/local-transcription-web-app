@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Loader, Copy, AlertCircle, CheckCircle, Trash } from "lucide-react";
+import { Loader, Copy, Trash } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -178,13 +178,9 @@ export const ResultForm = (): JSX.Element => {
   });
 
   const showToast = ({ variant, title, description }: { variant: "success" | "error"; title: string; description: string }): void => {
+    const iconEmoji = variant === "success" ? "✅" : "❌";
     toast({
-      title: (
-        <div className="flex items-center gap-2">
-          {variant === "success" ? <CheckCircle className="h-5 w-5 text-green-500" /> : <AlertCircle className="h-5 w-5 text-destructive" />}
-          {title}
-        </div>
-      ),
+      title: `${iconEmoji} ${title}`,
       description,
       variant: variant === "success" ? undefined : "destructive",
     });

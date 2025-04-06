@@ -168,6 +168,46 @@ const ResultDisplay = ({
   </div>
 );
 
+const copyTextLegacy = async (text: string): Promise<boolean> => {
+  if (navigator?.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      console.error("Modern clipboard API でのコピーに失敗:", error);
+      return false;
+    }
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.readOnly = true;
+  textArea.style.position = "absolute";
+  textArea.style.left = "-9999px";
+  document.body.appendChild(textArea);
+
+  textArea.value = text;
+  textArea.select();
+  textArea.setSelectionRange(0, text.length);
+
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+    if (!success) {
+      console.warn("document.execCommand('copy') が失敗しました。");
+    }
+  } catch (err) {
+    console.error("フォールバックでのコピーに失敗:", err);
+  } finally {
+    document.body.removeChild(textArea);
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
+  }
+
+  return success;
+};
+
 export const ResultForm = (): JSX.Element => {
   const [result, setResult] = useState<TranscriptionResult | null>(null);
   const [submittedValues, setSubmittedValues] = useState<ResultFormValues | null>(null);
@@ -197,8 +237,20 @@ export const ResultForm = (): JSX.Element => {
   };
 
   const handleCopyText = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    showToast({ variant: "success", title: "コピー完了", description: "文字起こし結果をクリップボードにコピーしました。" });
+    const success = await copyTextLegacy(text);
+    if (success) {
+      showToast({
+        variant: "success",
+        title: "コピー完了",
+        description: "文字起こし結果をクリップボードにコピーしました。",
+      });
+    } else {
+      showToast({
+        variant: "error",
+        title: "コピー失敗",
+        description: "クリップボードへのコピーに失敗しました。",
+      });
+    }
   };
 
   const handleRemoveResult = async () => {

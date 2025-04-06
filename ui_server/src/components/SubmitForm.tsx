@@ -89,6 +89,46 @@ const UuidDisplay = ({ uuid, onCopy }: { uuid: string; onCopy: () => Promise<voi
   </div>
 );
 
+const copyTextLegacy = async (text: string): Promise<boolean> => {
+  if (navigator?.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      console.error("Modern clipboard API でのコピーに失敗:", error);
+      return false;
+    }
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.readOnly = true;
+  textArea.style.position = "absolute";
+  textArea.style.left = "-9999px";
+  document.body.appendChild(textArea);
+
+  textArea.value = text;
+  textArea.select();
+  textArea.setSelectionRange(0, text.length);
+
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+    if (!success) {
+      console.warn("document.execCommand('copy') が失敗しました。");
+    }
+  } catch (err) {
+    console.error("フォールバックでのコピーに失敗:", err);
+  } finally {
+    document.body.removeChild(textArea);
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
+  }
+
+  return success;
+};
+
 export const SubmitForm = (): JSX.Element => {
   const [uuid, setUuid] = useState<string>("");
   const { toast } = useToast();
@@ -119,8 +159,20 @@ export const SubmitForm = (): JSX.Element => {
   };
 
   const handleCopyUuid = async () => {
-    await navigator.clipboard.writeText(uuid);
-    showToast({ variant: "success", title: "コピー完了", description: "申請IDがクリップボードにコピーされました。" });
+    const success = await copyTextLegacy(uuid);
+    if (success) {
+      showToast({
+        variant: "success",
+        title: "コピー完了",
+        description: "申請IDをクリップボードにコピーしました。",
+      });
+    } else {
+      showToast({
+        variant: "error",
+        title: "コピー失敗",
+        description: "クリップボードへのコピーに失敗しました。",
+      });
+    }
   };
 
   return (

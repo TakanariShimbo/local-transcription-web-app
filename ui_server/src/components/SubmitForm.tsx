@@ -63,14 +63,14 @@ const LanguageSelectField = ({ control }: { control: Control<SubmitFormValues> }
 );
 
 const SubmitButton = ({ isSubmitting }: { isSubmitting: boolean }): JSX.Element => (
-  <Button type="submit" className="w-full" disabled={isSubmitting}>
+  <Button type="submit" disabled={isSubmitting}>
     {isSubmitting ? (
-      <>
-        <Loader className="mr-2 h-5 w-5 animate-spin" />
-        送信中...
-      </>
+      <span key="loading" className="flex items-center">
+        <Loader className="mr-2 h-4 w-4 animate-spin" />
+        送信中…
+      </span>
     ) : (
-      "送信"
+      <span key="label">送信</span>
     )}
   </Button>
 );

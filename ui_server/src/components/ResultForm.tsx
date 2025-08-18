@@ -13,17 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { type ResultFormValues, resultFormSchema } from "@/lib/schemas";
 import { type TranscriptionResult, checkTranscriptionResult, removeTranscriptionResult, cancelTranscriptionJob } from "@/lib/api";
 
-const DialogTrashButton = ({
-  title,
-  description,
-  buttonText,
-  onConfirm,
-}: {
-  title: string;
-  description: string;
-  buttonText: string;
-  onConfirm: () => Promise<void>;
-}) => {
+const DialogTrashButton = ({ title, description, buttonText, onConfirm }: { title: string; description: string; buttonText: string; onConfirm: () => Promise<void> }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -53,15 +43,7 @@ const DialogTrashButton = ({
   );
 };
 
-const CompletedResult = ({
-  text,
-  onCopy,
-  onRemove,
-}: {
-  text: string;
-  onCopy: (text: string) => void;
-  onRemove: () => Promise<void>;
-}): JSX.Element => {
+const CompletedResult = ({ text, onCopy, onRemove }: { text: string; onCopy: (text: string) => void; onRemove: () => Promise<void> }): JSX.Element => {
   return (
     <div className="space-y-4">
       <Alert variant="default" className="bg-green-100 text-foreground p-6">
@@ -92,12 +74,7 @@ const QueuedResult = ({ position, onCancel }: { position: number; onCancel: () =
       ) : (
         <div className="flex justify-between items-center gap-4">
           <AlertDescription>現在順番待ちです。あなたの順番は {position} 番目です。</AlertDescription>
-          <DialogTrashButton
-            title="予約のキャンセル"
-            description="本当に文字起こし予約をキャンセルしますか？"
-            buttonText="キャンセル"
-            onConfirm={onCancel}
-          />
+          <DialogTrashButton title="予約のキャンセル" description="本当に文字起こし予約をキャンセルしますか？" buttonText="キャンセル" onConfirm={onCancel} />
         </div>
       )}
     </Alert>
@@ -158,12 +135,8 @@ const ResultDisplay = ({
   handleCancelJob: () => Promise<void>;
 }) => (
   <div className="mt-6 space-y-4">
-    {result?.status === "queued" && result.data?.position !== undefined && (
-      <QueuedResult position={result.data.position} onCancel={handleCancelJob} />
-    )}
-    {result?.status === "completed" && result.data?.text && (
-      <CompletedResult text={result.data.text} onCopy={handleCopyText} onRemove={handleRemoveResult} />
-    )}
+    {result?.status === "queued" && result.data?.position !== undefined && <QueuedResult position={result.data.position} onCancel={handleCancelJob} />}
+    {result?.status === "completed" && result.data?.text && <CompletedResult text={result.data.text} onCopy={handleCopyText} onRemove={handleRemoveResult} />}
     {result?.status === "not_found" && <NotFoundResult />}
   </div>
 );

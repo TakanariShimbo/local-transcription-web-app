@@ -93,7 +93,7 @@ const SubmitButton = ({ isSubmitting }: { isSubmitting: boolean }) => (
   <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
     {isSubmitting ? (
       <span key="loading" className="flex items-center">
-        <Loader className="mr-2 h-4 w-4 animate-spin" />
+        <Loader className="mr-2 h-5 w-5 animate-spin" />
         確認中...
       </span>
     ) : (

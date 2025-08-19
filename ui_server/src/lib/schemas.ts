@@ -1,9 +1,7 @@
 import * as z from "zod";
 
 export const submitFormSchema = z.object({
-  audioFile: z
-    .instanceof(File, { message: "音声ファイルを選択してください" })
-    .refine((file) => file.size <= 1000 * 1024 * 1024, "ファイルサイズは1GB以下にしてください"),
+  audioFile: z.instanceof(File, { message: "音声ファイルを選択してください" }).refine((file) => file.size <= 4000 * 1024 * 1024, "ファイルサイズは4GB以下にしてください"),
   language: z.string({ required_error: "言語を選択してください" }).min(1, "言語を選択してください"),
 });
 

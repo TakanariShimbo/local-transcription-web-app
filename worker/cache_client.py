@@ -8,6 +8,7 @@ import redis
 CACHE_SERVER_ADDRESS = os.environ["CACHE_SERVER_ADDRESS"]
 CACHE_SERVER_PORT = os.environ["CACHE_SERVER_PORT"]
 CACHE_SERVER_PASSWORD = os.environ["CACHE_SERVER_PASSWORD"]
+JOB_DATA_DIR = os.environ.get("JOB_DATA_DIR", "./job_data")
 
 
 HIGH_PRIORITY_JOB_LIST_NAME = "high_priority_job_list"
@@ -34,10 +35,16 @@ class CacheClient:
         job_id = raw_job_id.decode(encoding="utf-8")
         return job_id
 
-    def _get_job_data_from_pool(self, job_id: str) -> dict[str, Any]:
-        job_data_key = get_job_data_key(job_id=job_id)
-        raw_job_data = self._client.get(job_data_key)
-        job_data: dict[str, Any] = pickle.loads(raw_job_data)
+    # def _get_job_data_from_pool(self, job_id: str) -> dict[str, Any]:
+    #     job_data_key = get_job_data_key(job_id=job_id)
+    #     raw_job_data = self._client.get(job_data_key)
+    #     job_data: dict[str, Any] = pickle.loads(raw_job_data)
+    #     return job_data
+
+    def _get_job_data_from_storage(self, job_id: str) -> dict[str, Any]:
+        job_data_filepath = os.path.join(JOB_DATA_DIR, job_id + ".pkl")
+        with open(job_data_filepath, "rb") as f:
+            job_data: dict[str, Any] = pickle.load(f)
         return job_data
 
     def _get_job(self, job_list_name: str) -> tuple[str, dict[str, Any]] | None:
@@ -45,7 +52,7 @@ class CacheClient:
         if job_id is None:
             return None
 
-        job_data = self._get_job_data_from_pool(job_id=job_id)
+        job_data = self._get_job_data_from_storage(job_id=job_id)
         return job_id, job_data
 
     def _add_result_data_to_pool(self, job_id: str, result_data: dict[str, Any], expiration_sec: int) -> None:
@@ -55,6 +62,13 @@ class CacheClient:
     def _delete_job_data_from_pool(self, job_id: str) -> None:
         job_data_key = get_job_data_key(job_id=job_id)
         self._client.delete(job_data_key)
+
+    def _delete_job_data_from_storage(self, job_id: str) -> None:
+        job_data_filepath = os.path.join(JOB_DATA_DIR, job_id + ".pkl")
+        try:
+            os.remove(job_data_filepath)
+        except FileNotFoundError:
+            pass
 
     def _delete_job_id_from_pre_process_job_set(self, job_id: str) -> None:
         self._client.srem(PRE_PROCESS_JOB_SET_NAME, job_id)
@@ -70,5 +84,5 @@ class CacheClient:
     def post_process_job(self, job_id: str, job_data: dict[str, Any], result_data: dict[str, Any]) -> None:
         expiration_sec: int = job_data["expiration_sec"]
         self._add_result_data_to_pool(job_id=job_id, result_data=result_data, expiration_sec=expiration_sec)
-        self._delete_job_data_from_pool(job_id=job_id)
+        self._delete_job_data_from_storage(job_id=job_id)
         self._delete_job_id_from_pre_process_job_set(job_id=job_id)

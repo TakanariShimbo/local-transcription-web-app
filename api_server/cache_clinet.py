@@ -9,6 +9,7 @@ import redis
 CACHE_SERVER_ADDRESS = os.environ["CACHE_SERVER_ADDRESS"]
 CACHE_SERVER_PORT = os.environ["CACHE_SERVER_PORT"]
 CACHE_SERVER_PASSWORD = os.environ["CACHE_SERVER_PASSWORD"]
+JOB_DATA_DIR = os.environ.get("JOB_DATA_DIR", "./job_data")
 
 
 HIGH_PRIORITY_JOB_LIST_NAME = "high_priority_job_list"
@@ -27,10 +28,16 @@ def get_result_data_key(job_id: str) -> str:
 class CacheClient:
     def __init__(self) -> None:
         self._client = redis.Redis(host=CACHE_SERVER_ADDRESS, port=int(CACHE_SERVER_PORT), db=0, password=CACHE_SERVER_PASSWORD)
+        os.makedirs(JOB_DATA_DIR, exist_ok=True)
 
-    def _add_job_data_to_pool(self, job_id: str, job_data_dict: dict[str, Any]) -> None:
-        job_data_key = get_job_data_key(job_id=job_id)
-        self._client.set(name=job_data_key, value=pickle.dumps(job_data_dict))
+    # def _add_job_data_to_pool(self, job_id: str, job_data_dict: dict[str, Any]) -> None:
+    #     job_data_key = get_job_data_key(job_id=job_id)
+    #     self._client.set(name=job_data_key, value=pickle.dumps(job_data_dict))
+
+    def _add_job_data_to_storage(self, job_id: str, job_data_dict: dict[str, Any]) -> None:
+        job_data_filepath = os.path.join(JOB_DATA_DIR, job_id + ".pkl")
+        with open(job_data_filepath, "wb") as f:
+            pickle.dump(job_data_dict, f)
 
     def _get_result_data_from_pool(self, job_id: str) -> dict[str, Any] | None:
         result_data_key = get_result_data_key(job_id=job_id)
@@ -87,7 +94,7 @@ class CacheClient:
     def _add_job(self, job_list_name: str, job_data_dict: dict[str, Any]) -> str:
         job_id = str(uuid.uuid4())
 
-        self._add_job_data_to_pool(job_id=job_id, job_data_dict=job_data_dict)
+        self._add_job_data_to_storage(job_id=job_id, job_data_dict=job_data_dict)
 
         self._add_job_id_to_pre_process_job_set(job_id=job_id)
 
